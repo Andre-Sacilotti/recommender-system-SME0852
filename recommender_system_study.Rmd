@@ -1,0 +1,55 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+movies = read.csv("./data/ml-1m/movies.dat", sep=":", colClasses = c(NA, "NULL"), header = F)
+names(movies) <- c('item_id','name','genres')
+
+movies_metadata = read.csv("./data/ml-1m/ml1m_images.csv")
+
+ratings = read.csv("./data/ml-1m/ratings.dat", sep = ":", colClasses = c(NA, "NULL"), header = F)
+names(ratings) <- c('id','item_id','rating', 'user_id')
+
+```
+
+
+```{r}
+ratings$user_id <- as.factor(ratings$user_id)
+ratings$movie_id <- as.factor(ratings$movie_id)
+ratings$rating <- as.numeric(ratings$rating)
+
+ratings <- as(ratings, "realRatingMatrix")
+```
+
+```{r}
+train <- ratings[1:300]
+test <- ratings[300:350]
+```
+
+```{r}
+library("recommenderlab")
+set.seed(42)
+
+rec <- Recommender(train, method = "UBCF")
+rec
+```
+
+```{r}
+pre <- predict(rec, MovieLense100[301:302], n = 5)
+pre
+as(pre, "list")
+```
+
+```{r}
+movies_metadata
+df3 <- merge(movies_metadata, movies, by=c("item_id"))
+df3
+```
+
+```{r}
+
+```
+
