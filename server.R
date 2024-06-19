@@ -147,3 +147,6 @@ server <- function(input, output) {
     })
 
 }
+
+
+print("Oi, Funcionou!")
