@@ -379,3 +379,8 @@ server <- function(input, output, session) {
 
 }
 
+
+if(.Platform$OS.type == "unix") {
+} else {
+  shinyApp(ui = ui, server = server)
+}
