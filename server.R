@@ -1,8 +1,21 @@
 
+
+
 ### Local ##
 ## Lendo a base
 
-movies = read.csv("C:/Users/zabuz/Documents/GitHub/recommender-system-SME0852/data/movies.csv", sep=",")   #, colClasses = c(NA, "NULL"), header = F)
+
+
+if(.Platform$OS.type == "unix") {
+  movies = read.csv("./data/movies.csv", sep=",")   #, colClasses = c(NA, "NULL"), header = F)
+
+} else {
+  movies = read.csv("C:/Users/zabuz/Documents/GitHub/recommender-system-SME0852/data/movies.csv", sep=",")   #, colClasses = c(NA, "NULL"), header = F)
+
+}
+
+
+
 names(movies) <- c('movieID','name','genres','image','ano_lanc')
 
 movies$ano_lanc <- as.integer(gsub(".*\\((.*)\\).*", "\\1", movies$name))
@@ -16,7 +29,17 @@ movies$ano_lanc <- as.integer(gsub(".*\\((.*)\\).*", "\\1", movies$name))
 
 ###
 #Base de ratings
-ratings = read.csv("C:/Users/zabuz/Documents/GitHub/recommender-system-SME0852/data/ratings.csv", sep=",")
+
+
+if(.Platform$OS.type == "unix") {
+  ratings = read.csv("./data/ratings.csv", sep=",")
+
+} else {
+  ratings = read.csv("C:/Users/zabuz/Documents/GitHub/recommender-system-SME0852/data/ratings.csv", sep=",")
+
+}
+
+
 
 
 ratings$userId <- as.factor(ratings$userId)
@@ -355,6 +378,4 @@ server <- function(input, output, session) {
     })    
 
 }
-
-shinyApp(ui = ui, server = server)
 

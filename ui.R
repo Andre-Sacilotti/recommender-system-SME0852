@@ -7,6 +7,9 @@ library(shinyjs)
 library(dplyr)
 library(shinyWidgets)
 library(DT)
+
+source("server.R")
+
 header <- dashboardHeader(
   title = "Recomendação de Filmes", disable=TRUE
 )
