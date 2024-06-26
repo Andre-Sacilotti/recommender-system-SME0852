@@ -5,51 +5,107 @@ output: html_notebook
 
 
 ```{r}
-movies = read.csv("./data/ml-1m/movies.dat", sep=":", colClasses = c(NA, "NULL"), header = F)
-names(movies) <- c('item_id','name','genres')
-
-movies_metadata = read.csv("./data/ml-1m/ml1m_images.csv")
-
-ratings = read.csv("./data/ml-1m/ratings.dat", sep = ":", colClasses = c(NA, "NULL"), header = F)
-names(ratings) <- c('id','item_id','rating', 'user_id')
-
-```
+library(recommenderlab)
+set.seed(42)
 
 
-```{r}
-ratings$user_id <- as.factor(ratings$user_id)
-ratings$movie_id <- as.factor(ratings$movie_id)
+ratings = read.csv("./data/ratings.csv", sep=",")
+movies = read.csv("./data/movies.csv", sep=",")   #, colClasses = c(NA, "NULL"), header = F)
+
+names(movies) <- c('movieID','name','genres','image','ano_lanc')
+
+ratings$userId <- as.factor(ratings$userId)
+ratings$movieId <- as.factor(ratings$movieId)
 ratings$rating <- as.numeric(ratings$rating)
 
+
+
+```
+
+```{r}
+movies[1,]
+```
+
+
+
+```{r}
 ratings <- as(ratings, "realRatingMatrix")
+train <- ratings[1:1000]
 ```
 
 ```{r}
-train <- ratings[1:300]
-test <- ratings[300:350]
-```
-
-```{r}
-library("recommenderlab")
-set.seed(42)
 
 rec <- Recommender(train, method = "UBCF")
 rec
 ```
 
 ```{r}
-pre <- predict(rec, MovieLense100[301:302], n = 5)
+pre <- predict(rec, train[301:302], n = 5)
 pre
 as(pre, "list")
 ```
 
 ```{r}
-movies_metadata
-df3 <- merge(movies_metadata, movies, by=c("item_id"))
-df3
+ratings_rec <- matrix(
+  5,
+  nrow = 1,
+  ncol = ncol(train)
+)
+r = as(ratings_rec, "realRatingMatrix")
+hist(getRatings(r), breaks="FD")
+
+hist(getRatings(train[301:302]), breaks="FD")
+getRatings(train[301:302])
+
+m <- matrix(
+  sample(c(NA,0:5),ncol(train), replace=TRUE, prob=c(.7,rep(.3/6,6))),
+  
+  nrow=1, ncol=ncol(train), dimnames = list(
+  user=paste('u', 1:1, sep=''),
+  item=paste('i', 1:ncol(train), sep='')
+))
+
+pre <- predict(
+  rec,
+  as(m, "realRatingMatrix"),
+  n = 10
+)
+
+getList(pre)
+as(pre, "list")
 ```
 
 ```{r}
+as(train[301:301], 'data.frame')
+
+ratings_rec
+```
+
+```{r}
+m <- matrix(
+  sample(c(NA,0:0),ncol(train), replace=TRUE, prob=c(.99,rep(.001/6,1))),
+  
+  nrow=1, ncol=ncol(train), dimnames = list(
+  user=paste('u', 1:1, sep=''),
+  item=paste('i', 1:ncol(train), sep='')
+))
+
+m[1,1]
+
+```
+
+```{r}
+rec2 = as(pre, "list")
+
+rec2[[1]][2]
+```
+
+```{r}
+rec2 = as(pre, "list")
+
+for (i in 1:5){
+  print(rec2[[i]])
+}
 
 ```
 

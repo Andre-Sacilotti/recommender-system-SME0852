@@ -48,9 +48,7 @@ ratings$rating <- as.numeric(ratings$rating)
 ratings <- as(ratings, "realRatingMatrix")
 
 #Chamando ratings de train
-train <- ratings
-
-rec <- Recommender(train, method = "UBCF")
+train <- ratings[1:1000]
 
 
 
@@ -76,7 +74,6 @@ server <- function(input, output, session) {
     ratings_df <- reactiveVal(NULL)
     n_rows <- reactiveValues(data = 3)
     n_movies_per_row <- reactiveValues(data = 4)
-    recommender <- reactiveValues(object = rec)
     
     check_genres <- function(genres, genre_list) {
       any(sapply(genre_list, grepl, genres))
@@ -158,60 +155,6 @@ server <- function(input, output, session) {
 
     output$page <- renderText({ actual_page$data })
     output$page_avaliados <- renderText({ actual_page_avaliados$data })
-    
-    observeEvent(input$model, {
-        if (input$model == "UBCF"){
-            recommender$object <- Recommender(train, method = "UBCF")
-        }else if (input$model == "SVD++"){
-
-        }
-        # ... outros
-    })
-
-    observeEvent(input$gen_recommendation, {
-
-        user <- c()
-        item <- c()
-        rating <- c()
-
-        for (i in filtered_movies()$data$item_id){
-            title = movies[movies$item_id==i,][['name']]
-            if (!is.null(input[[paste0("select_",i)]])){
-                print("val")
-                print(input[[paste0("select_",i)]])
-                if (input[[paste0("select_",i)]] != ""){
-                    print("ADICIONADO")
-                    user <- c(user, 999999)
-                    item <- c(item, title)
-                    rating <- c(rating, input[[paste0("select_",i)]])
-                }else{
-                    user <- c(user, 999999)
-                    item <- c(item, title)
-                    rating <- c(rating, 0)
-                }
-            }else{  
-            
-                    user <- c(user, 999999)
-                    item <- c(item, title)
-                    rating <- c(rating, 0)
-                }
-            
-        }
-        
-        print(user)
-        print(item)
-        print(rating)
-        ratings <- data.frame(
-            user = user, 
-            item = item,
-            rating = rating
-        )
-        print(ratings)
-        ratings <- as(ratings, "realRatingMatrix")
-        print(ratings)
-        pre <- predict(recommender$object, ratings, n = 5)
-        print(as(pre, "list"))
-    })
     
     
     
@@ -371,10 +314,114 @@ server <- function(input, output, session) {
         })
         })
       
-    
+    recom <- reactive({
+      print("Changing recommender")
+      print(input$model)
+      if (input$model == "SVD++"){
+        b_train <- binarize(train, minRating=4)
+        Recommender(b_train, method = input$model)
+      }else{
+        Recommender(train, method = input$model)
+      }
+      
+
+    })
             
     output$movies_grid_recomendados <- renderUI({
-      
+        user <- c()
+        item <- c()
+        rating <- c()
+
+        K <- ratings_df()
+        K$movieID <- as.integer(K$movieID)
+        
+
+        ratings_rec <- matrix(
+          NA, nrow = 1, ncol = ncol(train)
+        )
+        ratings_rec <- matrix(
+          sample(c(NA,0:0),ncol(train), replace=TRUE, prob=c(.99,rep(.001/6,1))),
+          
+          nrow=1, ncol=ncol(train), dimnames = list(
+          user=paste('u', 1:1, sep=''),
+          item=paste('i', 1:ncol(train), sep='')
+        ))
+
+        total_ratings <- 0
+        for (i in 1:nrow(K)){
+          
+          movie_id = K[i,]$movieID
+          rating_ = K[i,]$rating
+
+
+          if (!is.null(rating_)){
+            
+            ratings_rec[, movie_id] <- as.double(rating_)
+            total_ratings <- total_ratings + 1
+          }
+          
+        }
+
+        if (total_ratings < 10){
+          return ("Avalie pelo menos 6 filmes")
+        }
+
+
+        # print(ratings_rec[,1:10])
+        ratings_conv <- as(ratings_rec, "realRatingMatrix")
+
+        if (input$model == 'SVD++'){
+          ratings_conv <- binarize(ratings_conv, minRating=4)
+        }
+
+        n_rec <- 5
+        pred <- predict(
+          recom(),
+          ratings_conv,
+          n = n_rec
+        )
+
+        rec = as(pred, "list")[[1]]
+
+        K <- movies
+
+        n_rows <- 2
+        n_movies_per_row <- 4
+        linhas_base <- n_rec
+        print(n_rec)
+        print(rec)
+        start_index <- 1
+        
+        lapply(1:n_rows, function(i) {
+            fluidRow(lapply(1:n_movies_per_row, function(j) {
+                index <- start_index + (i - 1) * n_movies_per_row + (j - 1)
+                print("index")
+                print(index)
+                print(rec[index])
+                if (index <= linhas_base) {
+                  print(as.integer(rec[index]))
+                  movie <- K[as.integer(rec[index]), ]
+                  print("movie")
+                  print(movie)
+                  column(width = 3, height = 250,
+                   div(
+                     style = "text-align:center; padding-bottom: 13px;",
+                     div(
+                       style = "text-align:center",
+                       img(src = movie$image, height = 150)
+                     ),
+                     div(
+                       style = "text-align:center; max-height: 40px; height: 40px",
+                       strong(movie$name)
+                     )
+                  ))
+                }
+            }))
+        })
+
+
+
+
     })    
 
 }
