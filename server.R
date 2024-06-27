@@ -48,7 +48,7 @@ ratings$rating <- as.numeric(ratings$rating)
 ratings <- as(ratings, "realRatingMatrix")
 
 #Chamando ratings de train
-train <- ratings[1:1000]
+train <- ratings[1:200]
 
 
 
@@ -363,7 +363,7 @@ server <- function(input, output, session) {
         }
 
         if (total_ratings < 10){
-          return ("Avalie pelo menos 6 filmes")
+          return ("Avalie pelo menos 10 filmes")
         }
 
 

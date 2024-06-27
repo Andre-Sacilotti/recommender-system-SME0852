@@ -17,7 +17,7 @@ header <- dashboardHeader(
 model_column <- box(width = NULL, status = "warning",
     selectInput(
         "model", "Selecione o Modelo Desejado:",
-        list("UBCF","SVD++", "RANDOM", "ALS", "POPULAR"), multiple=F
+        list("UBCF", "IBCF", "ALS", "RANDOM", "POPULAR"), multiple=F
     ),
 
     actionButton("update_model", "Atualizar Modelo")
