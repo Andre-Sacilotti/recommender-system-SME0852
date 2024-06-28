@@ -8,6 +8,7 @@ library(dplyr)
 library(shinyWidgets)
 library(DT)
 library(shinycssloaders)
+#library(shinyjs)
 
 source("server.R")
 
@@ -28,8 +29,12 @@ model_column <- box(width = NULL, status = "warning",
     ),
     
 
-    actionButton("update_model", "Atualizar Modelo")
+    sliderInput("n_recomend",label = "Número de recomendações",min = 5, max = 12,value = 5,ticks = FALSE)
 )
+
+                    
+
+
 
 filter_column <- column(width = 12,
     box(width = NULL, status = "warning",
@@ -40,7 +45,7 @@ filter_column <- column(width = 12,
         ),
           airDatepickerInput(
           inputId = "ano",
-          label = "Select a range of years:",
+          label = "Ano de lançamento",
           view = "years",
           minView = "years",
           dateFormat = "yyyy",
@@ -53,7 +58,8 @@ filter_column <- column(width = 12,
         
         #checkboxInput("avaliados", "Exibir Apenas Filmes Avaliados", FALSE),
         
-        # actionButton("update_filter", "Limpar Filtros")
+         actionButton("update_filter", "Limpar Filtros")#,
+         #actionButton("limpar_avaliacao", "Resetar avaliações")
     ),
     model_column
 )
@@ -66,8 +72,8 @@ movies_column <- box(width = NULL, solidHeader = TRUE,
                     tabPanel(
                 titlePanel("Avaliação"),
                 column(width = 12,br(),
-                  
-                      uiOutput('movies_grid'),
+                  withSpinner(
+                      uiOutput('movies_grid'),type =6),
               
                       fluidRow(
                         column(2,offset =4, 
@@ -80,7 +86,7 @@ movies_column <- box(width = NULL, solidHeader = TRUE,
                   ))),
               tabPanel(titlePanel("Avaliados"),
                        column(width = 12, br(),
-                              uiOutput("movies_grid_avaliados") %>% withSpinner(color="#0dc5c1"),
+                              uiOutput("movies_grid_avaliados") %>% withSpinner(color="#0dc5c1", type = 6),
                               fluidRow(
                                 column(2,offset =4, 
                                        actionButton("previous_page_avaliados", "Pagina Anterior")),
@@ -94,10 +100,10 @@ movies_column <- box(width = NULL, solidHeader = TRUE,
               
               tabPanel(titlePanel("Recomendação"),
                            column(width = 12, br(),
-                                  uiOutput('movies_grid_recomendados')%>% withSpinner(color="#0dc5c1")
+                                  uiOutput('movies_grid_recomendados')%>% withSpinner(color="#0dc5c1", type = 6)
                             ))))
       
-body <- dashboardBody(
+body <- dashboardBody(#useShinyjs(),
 #  dropdownButton(
 #    tags$h3("List of Input"),
 #    selectInput(inputId = 'xcol', label = 'X Variable', choices = names(iris)),

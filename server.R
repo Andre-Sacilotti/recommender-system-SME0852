@@ -1,5 +1,6 @@
 library(shinyRatings)
-
+library(shinyalert)
+library(shinycssloaders)
 
 ### Local ##
 ## Lendo a base
@@ -113,12 +114,25 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "nome", selected = character(0))
       updateCheckboxGroupInput(session, "genre", selected = character(0))
       updateAirDateInput(session, "ano", clear = TRUE)
+      update
       
       })
     
+    Aviso <- shinyalert(
+      title = "Aviso!",
+      text = "Para a recomendação, é necessário avaliar ao menos 5 filmes. Quanto mais filmes avaliados, melhor será a qualidade da recomendação!",
+      type = "info",
+      confirmButtonCol = "#11104d")
+    Aviso
     
-    
-
+    #observeEvent(input$limpar_avaliacao,{
+    #    new_value <- 4
+    #    runjs(paste0("$('.rating-input').text('Rating: ", new_value, "');"))
+    #    ratings_df(NULL)
+    #    ratings <- reactiveValues(data = list(NULL), rated_movies = list(NULL))
+    #  
+    #  
+    #})
 
     observeEvent(input$previous_page, {
         print(actual_page$data)
@@ -231,6 +245,7 @@ server <- function(input, output, session) {
     
     
     output$movies_grid_avaliados <- renderUI({
+      if( !is.null(ratings_df())){
       K <- ratings_df()
       K$movieID <- as.integer(K$movieID)
       K <- left_join(K,filtered_movies(), by = "movieID")
@@ -274,7 +289,7 @@ server <- function(input, output, session) {
             )
           }
         }))
-      })
+      })}
     })
     
       
@@ -378,7 +393,12 @@ server <- function(input, output, session) {
         }
 
         if (total_ratings < 5){
-          return ("Avalie pelo menos 5 filmes")
+          Erro <- shinyalert(
+            title = "Aviso!",
+            text = "Não foi possível gerar as recomendações, volte e avalie mais filmes.",
+            type = "info",
+            confirmButtonCol = "#11104d")
+          return("Não foi possível gerar as recomendações, volte e avalie mais filmes.")
         }
 
 
@@ -387,7 +407,7 @@ server <- function(input, output, session) {
 
 
 
-        n_rec <- 5
+        n_rec <- input$n_recomend
         pred <- predict(
           recom(),
           ratings_conv,
@@ -400,7 +420,7 @@ server <- function(input, output, session) {
 
         K <- movies
 
-        n_rows <- 2
+        n_rows <- 3
         n_movies_per_row <- 4
         linhas_base <- n_rec
         print(n_rec)
@@ -452,3 +472,4 @@ if(.Platform$OS.type == "unix") {
 } else {
   shinyApp(ui = ui, server = server)
 }
+
