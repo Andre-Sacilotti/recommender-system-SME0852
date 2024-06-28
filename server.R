@@ -233,7 +233,8 @@ server <- function(input, output, session) {
     output$movies_grid_avaliados <- renderUI({
       K <- ratings_df()
       K$movieID <- as.integer(K$movieID)
-      K <- left_join(K, filtered_movies(), by = "movieID")
+      K <- left_join(K,filtered_movies(), by = "movieID")
+      K <- na.omit(K)
       
       n_rows <- n_rows$data
       n_movies_per_row <- n_movies_per_row$data
