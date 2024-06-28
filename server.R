@@ -1,4 +1,4 @@
-
+library(shinyRatings)
 
 
 ### Local ##
@@ -48,7 +48,7 @@ ratings$rating <- as.numeric(ratings$rating)
 ratings <- as(ratings, "realRatingMatrix")
 
 #Chamando ratings de train
-train <- ratings[1:200]
+train <- ratings#[1:5000]
 
 
 
@@ -86,7 +86,7 @@ server <- function(input, output, session) {
         Base <- movies
       }
       else{
-        Base <- movies[grepl(input$nome, movies$name),]
+        Base <- movies[grepl(tolower(input$nome), tolower(movies$name)),]
       }
       
       if (length(input$genre) > 0){
@@ -168,12 +168,16 @@ server <- function(input, output, session) {
       actual_page <- actual_page$data
       n_pages <- as.integer(nrow(filtered_movies()) / (n_rows * n_movies_per_row))
       linhas_base <- nrow(filtered_movies())
+
+      mm <- filtered_movies()
+      print("Teste?")
       
       lapply(1:n_rows, function(i) {
         list(fluidRow(lapply(1:n_movies_per_row, function(j) {
           index <- (i - 1) * n_movies_per_row + j + (actual_page - 1) * (n_rows * n_movies_per_row)
           if (index <= linhas_base) {
-            movie_id <- filtered_movies()$movieID[index]
+            print("Teste2?")
+            movie_id <- mm$movieID[index]
             rating_id <- paste0("select_", movie_id)
             ratings$rated_movies[[rating_id]] <- movie_id
             
@@ -187,11 +191,11 @@ server <- function(input, output, session) {
                           style = "text-align:center; padding-bottom: 13px;",
                           div(
                             style = "text-align:center",
-                            img(src = filtered_movies()$image[index], height = 150)
+                            img(src = mm$image[index], height = 150)
                           ),
                           div(
                             style = "text-align:center; max-height: 40px; height: 40px",
-                            strong(filtered_movies()$name[index])
+                            strong(mm$name[index])
                           ),
                           div(
                             style = "text-align:center; font-size: 150%; color: #f0ad4e;",
@@ -199,7 +203,7 @@ server <- function(input, output, session) {
                               inputId = rating_id,
                               label = "",
                               value = ratings$data[[rating_id]],
-                              dataStop = 5
+                              dataStop = 5, includeBootstrapCSS=T
                             )
                           )
                         )
@@ -261,7 +265,7 @@ server <- function(input, output, session) {
                          label = "",
                          value = nota,
                          dataStop = 5,
-                         disabled = TRUE
+                         disabled = TRUE, includeBootstrapCSS=T
                        )
                      )
                    )
@@ -317,9 +321,14 @@ server <- function(input, output, session) {
     recom <- reactive({
       print("Changing recommender")
       print(input$model)
-      if (input$model == "SVD++"){
-        b_train <- binarize(train, minRating=4)
-        Recommender(b_train, method = input$model)
+      if (input$model == "HybridRecommender"){
+        # Recommender(b_train, method = input$model)
+        recom <- HybridRecommender(
+          Recommender(train, method = "POPULAR"),
+          Recommender(train, method = "RANDOM"),
+          # Recommender(train, method = "SVD"),
+        weights = c(.5, .5)
+        )
       }else{
         Recommender(train, method = input$model)
       }
@@ -370,9 +379,7 @@ server <- function(input, output, session) {
         # print(ratings_rec[,1:10])
         ratings_conv <- as(ratings_rec, "realRatingMatrix")
 
-        if (input$model == 'SVD++'){
-          ratings_conv <- binarize(ratings_conv, minRating=4)
-        }
+
 
         n_rec <- 5
         pred <- predict(

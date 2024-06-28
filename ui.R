@@ -7,6 +7,7 @@ library(shinyjs)
 library(dplyr)
 library(shinyWidgets)
 library(DT)
+library(shinycssloaders)
 
 source("server.R")
 
@@ -17,7 +18,7 @@ header <- dashboardHeader(
 model_column <- box(width = NULL, status = "warning",
     selectInput(
         "model", "Selecione o Modelo Desejado:",
-        list("UBCF", "IBCF", "ALS", "RANDOM", "POPULAR"), multiple=F
+        list("RANDOM", "POPULAR", "SVD", "UBCF", "HybridRecommender"), multiple=F
     ),
 
     actionButton("update_model", "Atualizar Modelo")
@@ -45,7 +46,7 @@ filter_column <- column(width = 12,
         
         #checkboxInput("avaliados", "Exibir Apenas Filmes Avaliados", FALSE),
         
-        actionButton("update_filter", "Limpar Filtros")
+        # actionButton("update_filter", "Limpar Filtros")
     ),
     model_column
 )
@@ -72,7 +73,7 @@ movies_column <- box(width = NULL, solidHeader = TRUE,
                   ))),
               tabPanel(titlePanel("Avaliados"),
                        column(width = 12, br(),
-                              uiOutput("movies_grid_avaliados"),
+                              uiOutput("movies_grid_avaliados") %>% withSpinner(color="#0dc5c1"),
                               fluidRow(
                                 column(2,offset =4, 
                                        actionButton("previous_page_avaliados", "Pagina Anterior")),
@@ -86,7 +87,8 @@ movies_column <- box(width = NULL, solidHeader = TRUE,
               
               tabPanel(titlePanel("Recomendação"),
                            column(width = 12, br(),
-                                  uiOutput('movies_grid_recomendados')))))
+                                  uiOutput('movies_grid_recomendados')%>% withSpinner(color="#0dc5c1")
+                            ))))
       
 body <- dashboardBody(
 #  dropdownButton(
