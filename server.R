@@ -172,6 +172,7 @@ server <- function(input, output, session) {
       mm <- filtered_movies()
       print("Teste?")
       
+      isolate({
       lapply(1:n_rows, function(i) {
         list(fluidRow(lapply(1:n_movies_per_row, function(j) {
           index <- (i - 1) * n_movies_per_row + j + (actual_page - 1) * (n_rows * n_movies_per_row)
@@ -225,7 +226,7 @@ server <- function(input, output, session) {
             ))
           }
         })))
-      })
+      })})
     })
     
     
@@ -323,11 +324,11 @@ server <- function(input, output, session) {
       print(input$model)
       if (input$model == "HybridRecommender"){
         # Recommender(b_train, method = input$model)
-        recom <- HybridRecommender(
+        HybridRecommender(
           Recommender(train, method = "POPULAR"),
           Recommender(train, method = "RANDOM"),
-          # Recommender(train, method = "SVD"),
-        weights = c(.5, .5)
+          Recommender(train, method = "UBCF"),
+          weights = c(.2, .5, .3)
         )
       }else{
         Recommender(train, method = input$model)
@@ -371,8 +372,8 @@ server <- function(input, output, session) {
           
         }
 
-        if (total_ratings < 10){
-          return ("Avalie pelo menos 10 filmes")
+        if (total_ratings < 5){
+          return ("Avalie pelo menos 5 filmes")
         }
 
 
@@ -389,6 +390,8 @@ server <- function(input, output, session) {
         )
 
         rec = as(pred, "list")[[1]]
+
+
 
         K <- movies
 
@@ -407,7 +410,13 @@ server <- function(input, output, session) {
                 print(rec[index])
                 if (index <= linhas_base) {
                   print(as.integer(rec[index]))
+                  if (input$model=="HybridRecommender"){
+                    rec[index] = strsplit(rec[index], "i", fixed=T)[[1]][2]
+                  }
+                  print(as.integer(rec[index]))
+
                   movie <- K[as.integer(rec[index]), ]
+                  
                   print("movie")
                   print(movie)
                   column(width = 3, height = 250,
