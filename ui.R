@@ -20,6 +20,13 @@ model_column <- box(width = NULL, status = "warning",
         "model", "Selecione o Modelo Desejado:",
         list("RANDOM", "POPULAR", "SVD", "UBCF", "HybridRecommender"), multiple=F
     ),
+    conditionalPanel(
+      condition = "input.model == 'UBCF'",
+      selectInput("sim_method", "Método de Similaridade",
+              list("jaccard", "pearson", "cosine"))
+
+    ),
+    
 
     actionButton("update_model", "Atualizar Modelo")
 )

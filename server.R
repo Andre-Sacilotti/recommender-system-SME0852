@@ -327,10 +327,14 @@ server <- function(input, output, session) {
         HybridRecommender(
           Recommender(train, method = "POPULAR"),
           Recommender(train, method = "RANDOM"),
-          Recommender(train, method = "UBCF"),
+          Recommender(train, method = "UBCF", param=list(method=input$sim_method, nn=500)),
           weights = c(.2, .5, .3)
         )
-      }else{
+      }else if(input$model == "UBCF"){
+        
+        Recommender(train, method = input$model, param=list(method=input$sim_method, nn=500))
+      }
+      else{
         Recommender(train, method = input$model)
       }
       
